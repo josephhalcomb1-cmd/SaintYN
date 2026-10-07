@@ -1,11 +1,16 @@
+// A self-contained build can inline every asset as a data URI on
+// window.__SAINT_ASSETS; otherwise assets load from their relative paths.
+const EMBED = typeof window !== 'undefined' ? window.__SAINT_ASSETS : null
+export const asset = (path) => EMBED?.[path] ?? path
+
 // Video frame sequence (every 2nd frame of the campaign film, 133 frames).
 export const FRAME_COUNT = 133
 // The high-res still is source frame 106 = sequence frame 54 (1-based).
 export const STILL_FRAME = 54
-export const STILL = { src: 'img/trunk-still.jpg', w: 1920, h: 1080 }
+export const STILL = { src: asset('img/trunk-still.jpg'), w: 1920, h: 1080 }
 
 export const frameSrc = (i, size) =>
-  `frames/${size}/${String(i).padStart(3, '0')}.webp`
+  asset(`frames/${EMBED ? 'md' : size}/${String(i).padStart(3, '0')}.webp`)
 
 // Painting positions inside the trunk still (pixels in the 1920×1080 frame).
 // Titles marked "Untitled" are placeholders — rename them to the real works.
@@ -41,7 +46,7 @@ export const PAINTINGS = [
     price: '$50,000,000',
     note:
       'The suspended instant between composure and collapse. A single exposed eye confronts the viewer with an emotion he cannot fully contain.',
-    hires: 'img/fallin-yn.jpg',
+    hires: asset('img/fallin-yn.jpg'),
   },
 ]
 
@@ -52,8 +57,8 @@ export const PRODUCTS = [
     name: "FALLIN' YN Hoodie",
     color: 'Heather Grey',
     price: 185,
-    front: 'img/hoodie-grey-front.webp',
-    back: 'img/hoodie-grey-back.webp',
+    front: asset('img/hoodie-grey-front.webp'),
+    back: asset('img/hoodie-grey-back.webp'),
     swatch: '#b6b6be',
   },
   {
@@ -61,8 +66,8 @@ export const PRODUCTS = [
     name: "FALLIN' YN Hoodie",
     color: 'Forest Green',
     price: 185,
-    front: 'img/hoodie-green-front.webp',
-    back: 'img/hoodie-green-back.webp',
+    front: asset('img/hoodie-green-front.webp'),
+    back: asset('img/hoodie-green-back.webp'),
     swatch: '#1c2a24',
   },
 ]

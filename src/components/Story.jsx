@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
+import { asset } from '../data'
 
 export default function Story() {
   const ref = useRef(null)
@@ -11,7 +12,7 @@ export default function Story() {
     <section id="story" ref={ref} className="story">
       <motion.figure className="frame" style={{ scale }}>
         <div className="frame__inner">
-          <motion.img src="img/fallin-yn.jpg" alt="FALLIN' YN, oil painting by Saint YN" style={{ y: imgY }} />
+          <motion.img src={asset('img/fallin-yn.jpg')} alt="FALLIN' YN, oil painting by Saint YN" style={{ y: imgY }} />
         </div>
       </motion.figure>
       <motion.div

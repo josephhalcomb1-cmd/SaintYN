@@ -228,7 +228,7 @@ em {
 /* Hero */
 .hero {
   position: relative;
-  height: 1000vh;
+  height: 1400vh;
   background: var(--ink);
 }
 .hero__stage {
