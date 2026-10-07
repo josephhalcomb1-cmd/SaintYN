@@ -11,7 +11,7 @@ export default function Story() {
     <section id="story" ref={ref} className="story">
       <motion.figure className="frame" style={{ scale }}>
         <div className="frame__inner">
-          <motion.img src="/img/fallin-yn.jpg" alt="FALLIN' YN, oil painting by Saint YN" style={{ y: imgY }} />
+          <motion.img src="img/fallin-yn.jpg" alt="FALLIN' YN, oil painting by Saint YN" style={{ y: imgY }} />
         </div>
       </motion.figure>
       <motion.div
