@@ -33,7 +33,14 @@ html.lenis body {
   scroll-behavior: auto !important;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
+  overflow: hidden;
   margin: 0;
   background: var(--ink);
   color: var(--bone);
@@ -228,14 +235,13 @@ em {
 /* Hero */
 .hero {
   position: relative;
-  height: 1400vh;
+  height: calc(var(--vh, 1vh) * 1400);
   background: var(--ink);
 }
 .hero__stage {
   position: sticky;
   top: 0;
-  height: 100vh;
-  height: 100svh;
+  height: calc(var(--vh, 1vh) * 100);
   overflow: hidden;
 }
 .hero__canvas {
@@ -870,4 +876,14 @@ em {
     top: 72px;
     bottom: auto;
   }
+}
+
+/* The page's own scroll container (see src/scroller.js). */
+.scroller {
+  position: fixed;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }

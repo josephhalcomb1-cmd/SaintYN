@@ -7,6 +7,7 @@ import HeroSequence from './components/HeroSequence'
 import Rack from './components/Rack'
 import Story from './components/Story'
 import Bag from './components/Bag'
+import { scrollerRef, contentRef } from './scroller'
 
 const MARQUEE = 'SAINT YN — OIL ON COTTON — OAKLAND, CALIFORNIA — COLLECTION Nº 01 — '
 
@@ -30,7 +31,13 @@ export default function App() {
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.6, anchors: true })
+    const lenis = new Lenis({
+      wrapper: scrollerRef.current,
+      content: contentRef.current,
+      lerp: 0.085,
+      wheelMultiplier: 0.6,
+      anchors: true,
+    })
     let id = requestAnimationFrame(function raf(t) {
       lenis.raf(t)
       id = requestAnimationFrame(raf)
@@ -42,14 +49,27 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    document.documentElement.style.overflow = ready && !bagOpen ? '' : 'hidden'
+    scrollerRef.current.style.overflowY = ready && !bagOpen ? 'auto' : 'hidden'
   }, [ready, bagOpen])
+
+  // --vh tracks the scroller's real height; CSS vh units can be wrong inside
+  // embedded frames.
+  useEffect(() => {
+    const el = scrollerRef.current
+    const set = () => document.documentElement.style.setProperty('--vh', `${el.clientHeight / 100}px`)
+    set()
+    const ro = new ResizeObserver(set)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   return (
     <>
       <Loader progress={progress} visible={!ready} />
       <div className="grain" aria-hidden="true" />
       <Nav count={bag.length} onBag={() => setBagOpen(true)} />
+      <div className="scroller" ref={scrollerRef}>
+      <div ref={contentRef}>
       <main id="top">
         <HeroSequence frames={frames} still={still} />
         <div className="marquee" aria-hidden="true">
@@ -87,6 +107,8 @@ export default function App() {
         </form>
         <p className="footer__fine">© {new Date().getFullYear()} SAINT YN — Oakland, California</p>
       </footer>
+      </div>
+      </div>
       <Bag
         open={bagOpen}
         items={bag}

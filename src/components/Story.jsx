@@ -1,10 +1,11 @@
 import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { asset } from '../data'
+import { scrollerRef } from '../scroller'
 
 export default function Story() {
   const ref = useRef(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
+  const { scrollYProgress } = useScroll({ target: ref, container: scrollerRef, offset: ['start end', 'end start'] })
   const scale = useTransform(scrollYProgress, [0, 0.5], [0.82, 1])
   const imgY = useTransform(scrollYProgress, [0, 1], ['-6%', '6%'])
 

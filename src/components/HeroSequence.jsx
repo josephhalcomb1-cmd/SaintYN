@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion'
 import { FRAME_COUNT, STILL_FRAME, STILL, PAINTINGS } from '../data'
+import { scrollerRef } from '../scroller'
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
 const lerp = (a, b, t) => a + (b - a) * t
@@ -86,10 +87,12 @@ export default function HeroSequence({ frames, still }) {
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
+    container: scrollerRef,
     offset: ['start start', 'end end'],
   })
 
   const draw = (p) => {
+    if (!Number.isFinite(p)) p = 0
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
