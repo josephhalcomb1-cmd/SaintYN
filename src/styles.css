@@ -863,3 +863,11 @@ em {
     animation: none;
   }
 }
+
+/* Phones: the placard moves above a painting that sits low on screen. */
+@media (max-width: 899px) {
+  .hero__stage[data-placard='top'] .placard {
+    top: 72px;
+    bottom: auto;
+  }
+}

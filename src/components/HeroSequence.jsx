@@ -8,12 +8,34 @@ const seg = (p, a, b) => clamp((p - a) / (b - a))
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
 // Scroll timeline, as fractions of the pinned section.
-const A_END = 0.2 // film: trunk opens, camera pushes in
-const TOUR_START = 0.2
+const A_END = 0.24 // film: trunk opens, camera pushes in
+const TOUR_START = 0.24
 const TOUR_END = 0.76 // camera visits each painting
 const OUT_END = 0.82 // camera pulls back to the full frame
 const STOP = (TOUR_END - TOUR_START) / PAINTINGS.length
 const TRAVEL = 0.4 // share of each stop spent travelling to it
+
+// Film scrub before the tour: [progress, frame] keys. The hatch opening
+// (frames ~11-38) gets most of the scroll, so it plays out fully.
+const FILM_IN = [
+  [0, 1],
+  [0.04, 11],
+  [0.17, 38],
+  [A_END, STILL_FRAME],
+]
+const filmFrame = (p) => {
+  for (let k = 1; k < FILM_IN.length; k++) {
+    const [p1, f1] = FILM_IN[k]
+    const [p0, f0] = FILM_IN[k - 1]
+    if (p <= p1) return Math.round(lerp(f0, f1, seg(p, p0, p1)))
+  }
+  return STILL_FRAME
+}
+
+// The visible width of the film when it isn't zoomed (source pixels). On a
+// portrait phone a full-bleed crop would hide the car, so show this much
+// and fill the rest with a blurred copy of the frame.
+const FILM_SPAN = 1320
 
 const stopWindow = (i) => {
   const s = TOUR_START + i * STOP
@@ -31,18 +53,24 @@ function stopCamera(box, W, H, s0) {
     cy: (y0 + y1) / 2,
     z: Math.max(wide ? 1 : 1.35, z),
     ax: wide ? 0.36 : 0.5,
-    ay: wide ? 0.5 : 0.36,
+    ay: 0.5,
   }
 }
 
-const FULL = { cx: STILL.w / 2, cy: STILL.h / 2, z: 1, ax: 0.5, ay: 0.5 }
+function fullCamera(W, s0) {
+  return { cx: STILL.w / 2, cy: STILL.h / 2, z: Math.min(1, W / FILM_SPAN / s0), ax: 0.5, ay: 0.5 }
+}
+
+// Clamp an offset so the image covers the axis; when it is narrower than
+// the axis, centre it instead (the blurred backdrop fills the rest).
+const place = (r, view, size) => (size >= view ? clamp(r, view - size, 0) : (view - size) / 2)
 
 function mixCamera(a, b, t) {
   const dip = 1 - 0.18 * Math.sin(Math.PI * t) // pull back slightly mid-move
   return {
     cx: lerp(a.cx, b.cx, t),
     cy: lerp(a.cy, b.cy, t),
-    z: Math.max(1, Math.exp(lerp(Math.log(a.z), Math.log(b.z), t)) * dip),
+    z: Math.max(Math.min(a.z, b.z), Math.exp(lerp(Math.log(a.z), Math.log(b.z), t)) * dip),
     ax: lerp(a.ax, b.ax, t),
     ay: lerp(a.ay, b.ay, t),
   }
@@ -54,6 +82,7 @@ export default function HeroSequence({ frames, still }) {
   const spotRef = useRef(null)
   const hiresRef = useRef(null)
   const lastDraw = useRef('')
+  const backdrop = useRef(null)
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -75,6 +104,7 @@ export default function HeroSequence({ frames, still }) {
 
     const s0 = Math.max(W / STILL.w, H / STILL.h)
     let img = null
+    const FULL = fullCamera(W, s0)
     let cam = FULL
     let spot = 0
     let hires = 0
@@ -83,7 +113,7 @@ export default function HeroSequence({ frames, still }) {
       // Film phases: scrub the frame sequence.
       const idx =
         p < TOUR_START
-          ? Math.round(lerp(1, STILL_FRAME, seg(p, 0, A_END)))
+          ? filmFrame(p)
           : p > OUT_END
             ? Math.round(lerp(STILL_FRAME, FRAME_COUNT, seg(p, OUT_END, 1)))
             : STILL_FRAME
@@ -112,20 +142,24 @@ export default function HeroSequence({ frames, still }) {
     const s = s0 * cam.z
     const dw = STILL.w * s
     const dh = STILL.h * s
-    // Keep the frame edge-to-edge in the film, but let the camera roam
-    // freely once the spotlight is up (the edges are dark by then).
-    const rx = cam.ax * W - cam.cx * s
-    const ry = cam.ay * H - cam.cy * s
-    const dx = lerp(clamp(rx, W - dw, 0), rx, spot)
-    const dy = lerp(clamp(ry, H - dh, 0), ry, spot)
+    const dx = place(cam.ax * W - cam.cx * s, W, dw)
+    const dy = place(cam.ay * H - cam.cy * s, H, dh)
 
     const key = `${img.src}|${dx.toFixed(1)}|${dy.toFixed(1)}|${dw.toFixed(1)}|${W}x${H}`
     if (key !== lastDraw.current) {
       lastDraw.current = key
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      ctx.fillStyle = '#0b0b0a'
-      ctx.fillRect(0, 0, W, H)
       ctx.imageSmoothingQuality = 'high'
+      if (dw < W || dh < H) {
+        // Blurred backdrop: the frame shrunk to a few pixels, then stretched
+        // to cover, so no part of the stage is ever empty.
+        const b = (backdrop.current ||= Object.assign(document.createElement('canvas'), { width: 48, height: 27 }))
+        b.getContext('2d').drawImage(img, 0, 0, 48, 27)
+        const bs = s0 * 1.15
+        ctx.drawImage(b, (W - STILL.w * bs) / 2, (H - STILL.h * bs) / 2, STILL.w * bs, STILL.h * bs)
+        ctx.fillStyle = 'rgba(11, 11, 10, 0.45)'
+        ctx.fillRect(0, 0, W, H)
+      }
       ctx.drawImage(img, dx, dy, dw, dh)
     }
 
@@ -134,6 +168,11 @@ export default function HeroSequence({ frames, still }) {
       p >= TOUR_START && p <= OUT_END
         ? PAINTINGS[Math.min(PAINTINGS.length - 1, Math.max(0, Math.floor((p - TOUR_START) / STOP)))]
         : null
+    if (focus && W < 900) {
+      const [, y0, , y1] = focus.box
+      const mid = dy + ((y0 + y1) / 2) * s
+      canvas.parentElement.dataset.placard = mid > H * 0.5 ? 'top' : 'bottom'
+    }
     if (spotRef.current) {
       spotRef.current.style.opacity = String(spot * 0.92)
       if (focus) {
@@ -182,8 +221,8 @@ export default function HeroSequence({ frames, still }) {
   const introOpacity = useTransform(scrollYProgress, [0, 0.015, 0.06], [1, 1, 0])
   const introY = useTransform(scrollYProgress, [0, 0.06], ['0vh', '-12vh'])
   const introTrack = useTransform(scrollYProgress, [0, 0.06], ['-0.02em', '0.08em'])
-  const line1 = useTransform(scrollYProgress, [0.07, 0.1, 0.16, 0.19], [0, 1, 1, 0])
-  const line1Y = useTransform(scrollYProgress, [0.07, 0.19], ['4vh', '-4vh'])
+  const line1 = useTransform(scrollYProgress, [0.165, 0.18, 0.215, 0.235], [0, 1, 1, 0])
+  const line1Y = useTransform(scrollYProgress, [0.165, 0.235], ['3vh', '-3vh'])
   const tourUi = useTransform(
     scrollYProgress,
     [TOUR_START, TOUR_START + 0.02, TOUR_END, TOUR_END + 0.02],
