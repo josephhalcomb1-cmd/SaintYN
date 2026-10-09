@@ -13,40 +13,36 @@ export const frameSrc = (i, size) =>
   asset(`frames/${EMBED ? 'md' : size}/${String(i).padStart(3, '0')}.webp`)
 
 // Painting positions inside the trunk still (pixels in the 1920×1080 frame).
-// Titles marked "Untitled" are placeholders — rename them to the real works.
+// "WHERE DEY AT TWIN?" (the knight on horseback, middle left) also sits in
+// the trunk but is left out of the tour: it duplicates LORD OF THE HUZZ.
 export const PAINTINGS = [
   {
-    id: 'creation',
-    title: 'Untitled (Creation)',
+    id: 'tap-in-gang',
+    title: 'TAP IN GANG',
     box: [690, 710, 1025, 950],
     note: 'The masked figure reaches back. Classical ceiling, curbside gallery.',
   },
   {
-    id: 'rider',
-    title: 'Untitled (Rider)',
-    box: [480, 520, 905, 865],
-    note: 'Armor as uniform. The horse never stops moving.',
-  },
-  {
-    id: 'knight',
-    title: 'Untitled (Knight)',
+    id: 'lord-of-the-huzz',
+    title: 'LORD OF THE HUZZ',
     box: [725, 335, 1140, 665],
     note: 'Protection, status, and the weight of being watched.',
-  },
-  {
-    id: 'prayer',
-    title: 'Untitled (Prayer)',
-    box: [1035, 550, 1425, 940],
-    note: 'Hands folded in the dark. Faith kept private.',
   },
   {
     id: 'fallin',
     title: "FALLIN' YN",
     box: [1165, 395, 1430, 550],
+    center: true, // framed dead centre on screen
     price: '$50,000,000',
     note:
       'The suspended instant between composure and collapse. A single exposed eye confronts the viewer with an emotion he cannot fully contain.',
     hires: asset('img/fallin-yn.jpg'),
+  },
+  {
+    id: 'pray-for-me-twin',
+    title: 'PRAY FOR ME TWIN.',
+    box: [1035, 550, 1425, 940],
+    note: 'Hands folded in the dark. Faith kept private.',
   },
 ]
 

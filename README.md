@@ -23,7 +23,6 @@ Timeline breakpoints are the constants at the top of `HeroSequence.jsx`.
 
 ## Placeholders to replace before launch
 
-- Painting titles marked "Untitled (…)" in `src/data.js`.
 - Product prices in `src/data.js` ($185 is a placeholder).
 - Checkout button (`src/components/Bag.jsx`) — connect Shopify / Stripe.
 - Email signup (`src/App.jsx`) — connect your email provider.

@@ -43,18 +43,21 @@ const stopWindow = (i) => {
   return [s + STOP * TRAVEL, s + STOP * (TRAVEL + 0.1), s + STOP * 0.92, s + STOP]
 }
 
-function stopCamera(box, W, H, s0) {
+// The painting shown in high resolution over the film still.
+const HIRES = PAINTINGS.findIndex((p) => p.hires)
+
+function stopCamera({ box, center }, W, H, s0) {
   const [x0, y0, x1, y1] = box
   const wide = W >= 900
-  const fitW = wide ? W * 0.46 : W * 0.84
+  const fitW = wide ? W * (center ? 0.38 : 0.46) : W * 0.84
   const fitH = wide ? H * 0.62 : H * 0.4
   const z = Math.min(fitW / (x1 - x0), fitH / (y1 - y0)) / s0
   return {
     cx: (x0 + x1) / 2,
     cy: (y0 + y1) / 2,
     z: Math.max(wide ? 1 : 1.35, z),
-    ax: wide ? 0.36 : 0.5,
-    ay: 0.5,
+    ax: wide && !center ? 0.36 : 0.5,
+    ay: wide ? 0.5 : 0.32, // phones: leave room for the placard below
   }
 }
 
@@ -126,17 +129,18 @@ export default function HeroSequence({ frames, still }) {
       if (p <= TOUR_END) {
         const i = Math.min(PAINTINGS.length - 1, Math.floor((p - TOUR_START) / STOP))
         const t = seg(p, TOUR_START + i * STOP, TOUR_START + (i + 1) * STOP)
-        const from = i === 0 ? FULL : stopCamera(PAINTINGS[i - 1].box, W, H, s0)
-        const to = stopCamera(PAINTINGS[i].box, W, H, s0)
+        const from = i === 0 ? FULL : stopCamera(PAINTINGS[i - 1], W, H, s0)
+        const to = stopCamera(PAINTINGS[i], W, H, s0)
         cam = mixCamera(from, to, ease(seg(t, 0, TRAVEL)))
         spot = i === 0 ? ease(seg(t, 0, TRAVEL)) : 1
-        if (PAINTINGS[i].hires) hires = seg(t, TRAVEL + 0.05, TRAVEL + 0.25)
+        if (i === HIRES) hires = seg(t, TRAVEL + 0.05, TRAVEL + 0.25)
+        else if (i === HIRES + 1) hires = 1 - seg(t, 0, TRAVEL * 0.35)
       } else {
         const t = ease(seg(p, TOUR_END, OUT_END))
         const last = PAINTINGS[PAINTINGS.length - 1]
-        cam = mixCamera(stopCamera(last.box, W, H, s0), FULL, t)
+        cam = mixCamera(stopCamera(last, W, H, s0), FULL, t)
         spot = 1 - t
-        hires = 1 - seg(t, 0, 0.35)
+        if (HIRES === PAINTINGS.length - 1) hires = 1 - seg(t, 0, 0.35)
       }
     }
     if (!img) return
@@ -186,8 +190,7 @@ export default function HeroSequence({ frames, still }) {
       }
     }
     if (hiresRef.current) {
-      const f = PAINTINGS[PAINTINGS.length - 1]
-      const [x0, y0, x1, y1] = f.box
+      const [x0, y0, x1, y1] = PAINTINGS[HIRES].box
       // Inset past the gilded frame onto the canvas itself; the frame's
       // bottom rail is hidden behind the painting below, so no bottom inset.
       const ix = (x1 - x0) * 0.1
@@ -241,7 +244,7 @@ export default function HeroSequence({ frames, still }) {
       <div className="hero__stage">
         <canvas ref={canvasRef} className="hero__canvas" aria-hidden="true" />
         <div ref={spotRef} className="hero__spot" aria-hidden="true" />
-        <img ref={hiresRef} src={PAINTINGS[PAINTINGS.length - 1].hires} alt="" className="hero__hires" />
+        <img ref={hiresRef} src={PAINTINGS[HIRES].hires} alt="" className="hero__hires" />
         <motion.div className="hero__scrim" style={{ opacity: scrim }} aria-hidden="true" />
         <div className="hero__vignette" aria-hidden="true" />
 
@@ -263,7 +266,7 @@ export default function HeroSequence({ frames, still }) {
         <motion.div className="line" style={{ opacity: line1, y: line1Y }}>
           <p className="label">“THE EXHIBITION”</p>
           <h2>
-            Five paintings.
+            Four paintings.
             <br />
             <em>One trunk.</em>
           </h2>
