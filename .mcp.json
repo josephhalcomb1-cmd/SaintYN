@@ -6,6 +6,25 @@
       "headers": {
         "Authorization": "Bearer ${CONTEXT7_API_KEY}"
       }
+    },
+    "gsap-master": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@vinhnguyen/gsap-mcp"
+      ]
+    },
+    "threejs-devtools-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "threejs-devtools-mcp"
+      ],
+      "env": {
+        "HEADLESS": "true",
+        "CHROME_PATH": "./.claude/chromium-no-sandbox.sh",
+        "DEV_PORT": "5173"
+      }
     }
   }
 }
