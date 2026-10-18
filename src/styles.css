@@ -887,3 +887,9 @@ em {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Test scene for threejs-devtools-mcp — remove with TestScene.jsx. */
+.test-scene {
+  height: calc(var(--vh, 1vh) * 60);
+  background: var(--ink);
+}

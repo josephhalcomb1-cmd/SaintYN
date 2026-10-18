@@ -7,6 +7,7 @@ import HeroSequence from './components/HeroSequence'
 import Rack from './components/Rack'
 import Story from './components/Story'
 import Bag from './components/Bag'
+import TestScene from './components/TestScene'
 import { scrollerRef, contentRef } from './scroller'
 
 const MARQUEE = 'SAINT YN — OIL ON COTTON — OAKLAND, CALIFORNIA — COLLECTION Nº 01 — '
@@ -85,6 +86,7 @@ export default function App() {
           }}
         />
         <Story />
+        <TestScene />
       </main>
       <footer className="footer">
         <div className="footer__mark">
