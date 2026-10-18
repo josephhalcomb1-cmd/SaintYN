@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "gsap-master": {
+      "command": "npx",
+      "args": ["-y", "@vinhnguyen/gsap-mcp"]
+    },
+    "threejs-devtools-mcp": {
+      "command": "npx",
+      "args": ["-y", "threejs-devtools-mcp"],
+      "env": {
+        "DEV_PORT": "5173",
+        "HEADLESS": "true",
+        "CHROME_PATH": "./scripts/chromium-no-sandbox.sh"
+      }
+    }
+  }
+}
